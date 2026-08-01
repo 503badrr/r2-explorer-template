@@ -1,82 +1,52 @@
-# R2-Explorer App
+# Switch private R2 explorer
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/templates/tree/main/r2-explorer-template)
+This Worker provides a read-only operational view of Switch assets in Cloudflare
+R2. It is intentionally not a public file browser and must not be deployed until
+Cloudflare Access is configured for the target Worker.
 
-![R2 Explorer Template Preview](https://imagedelivery.net/wSMYJvS3Xw-n339CbDyDIA/e3c4ab7e-43f2-49df-6317-437f4ae8ce00/public)
+## Release topology
 
-<!-- dash-content-start -->
+| Environment | Worker | Bucket |
+| --- | --- | --- |
+| Preview | `switch-r2-explorer-preview` | `r2-explorer-bucket-preview` |
+| Production | `switch-r2-explorer` | `r2-explorer-bucket` |
 
-R2-Explorer brings a familiar Google Drive-like interface to your Cloudflare R2 storage buckets, making file management simple and intuitive.
+The binding name stays `bucket` because that is the contract expected by
+`r2-explorer`. Bindings are repeated under `env.production` because Wrangler
+does not inherit resource bindings into named environments.
 
-## Key Features
+## Security gate
 
-- **🔒 Security**
-  - Basic Authentication support
-  - Cloudflare Access integration
-  - Self-hosted on your Cloudflare account
+Before either environment is deployed:
 
-- **📁 File Management**
-  - Drag-and-drop file upload
-  - Folder creation and organization
-  - Multi-part upload for large files
-  - Right-click context menu for advanced options
-  - HTTP/Custom metadata editing
+1. Create a Cloudflare Access **Self-hosted** application for the Worker.
+2. Attach an explicit Allow policy for the Switch operations group.
+3. Keep `workers_dev` and `preview_urls` disabled.
+4. Verify an anonymous request is denied and an approved identity can sign in.
+5. Keep `readonly: true` and `cors: false` in `src/index.ts`.
 
-- **👀 File Handling**
-  - In-browser file preview
-    - PDF documents
-    - Images
-    - Text files
-    - Markdown
-    - CSV
-    - Logpush files
-  - In-browser file editing
-  - Folder upload support
+Cloudflare recommends linking Access directly to a Worker (including previews)
+as the safest way to protect every route. The configuration deliberately does
+not embed a team name, account ID, token, route, or identity policy.
 
-- **📧 Email Integration**
-  - Receive and process emails via Cloudflare Email Routing
-  - View email attachments directly in the interface
+## Local verification
 
-- **🔎 Observability**
-  - View real-time logs associated with any deployed Worker using `wrangler tail`
-  <!-- dash-content-end -->
-
-> [!IMPORTANT]
-> When using C3 to create this project, select "no" when it asks if you want to deploy. You need to follow this project's [setup steps](https://github.com/cloudflare/templates/tree/main/r2-explorer-template#setup-steps) before deploying.
-
-## Getting Started
-
-Outside of this repo, you can start a new project with this template using [C3](https://developers.cloudflare.com/pages/get-started/c3/) (the `create-cloudflare` CLI):
-
-```
-npm create cloudflare@latest -- --template=cloudflare/templates/r2-explorer-template
+```bash
+npm ci
+npx tsc --noEmit
+npx wrangler deploy --dry-run --env=""
+npx wrangler deploy --dry-run --env production
 ```
 
-A live public deployment of this template is available at [https://demo.r2explorer.com](https://demo.r2explorer.com)
+These commands bundle and validate both environments without publishing them.
 
-## Setup Steps
+## Controlled deployment
 
-1. Install the project dependencies with a package manager of your choice:
-   ```bash
-   npm install
-   ```
-2. Create a [R2 Bucket](https://developers.cloudflare.com/r2/get-started/) with the name "r2-explorer-bucket":
-   ```bash
-   npx wrangler r2 bucket create r2-explorer-bucket
-   ```
-3. Deploy the project!
-   ```bash
-   npx wrangler deploy
-   ```
-4. Monitor your worker
-   ```bash
-   npx wrangler tail
-   ```
+Only after the Access gate and both buckets exist:
 
-## Next steps
+```bash
+npx wrangler deploy --env=""
+npx wrangler deploy --env production
+```
 
-By default this template is **readonly**.
-
-in order for you to enable editing, just update the `readonly` flag in your `src/index.ts` file.
-
-Its highly recommended that you setup security first, [learn more here](https://r2explorer.com/getting-started/security/).
+Deployment is intentionally outside the unified release build step.
