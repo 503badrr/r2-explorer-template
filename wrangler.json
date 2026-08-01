@@ -1,7 +1,10 @@
 {
-	"compatibility_date": "2025-10-08",
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"compatibility_date": "2026-08-01",
 	"main": "src/index.ts",
-	"name": "r2-explorer-template",
+	"name": "switch-r2-explorer-preview",
+	"workers_dev": false,
+	"preview_urls": false,
 	"assets": {
 		"directory": "node_modules/r2-explorer/dashboard",
 		"binding": "ASSETS",
@@ -11,12 +14,23 @@
 	"r2_buckets": [
 		{
 			"binding": "bucket",
-			"bucket_name": "r2-explorer-bucket",
-			"preview_bucket_name": "r2-explorer-bucket"
+			"bucket_name": "r2-explorer-bucket-preview",
+			"preview_bucket_name": "r2-explorer-bucket-preview"
 		}
 	],
 	"observability": {
 		"enabled": true
 	},
-	"upload_source_maps": true
+	"upload_source_maps": true,
+	"env": {
+		"production": {
+			"name": "switch-r2-explorer",
+			"r2_buckets": [
+				{
+					"binding": "bucket",
+					"bucket_name": "r2-explorer-bucket"
+				}
+			]
+		}
+	}
 }
