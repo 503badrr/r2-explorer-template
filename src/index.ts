@@ -1,10 +1,11 @@
 import { R2Explorer } from "r2-explorer";
 
 export default R2Explorer({
-	// Set to false to allow users to upload files
+	// This operational surface must remain read-only in every environment.
 	readonly: true,
+	cors: false,
 
-	// Learn more how to secure your R2 Explorer instance:
-	// https://r2explorer.com/getting-started/security/
-	// cfAccessTeamName: "my-team-name",
+	// Authentication is enforced by a Cloudflare Access self-hosted application
+	// attached to the Worker. workers.dev and preview URLs are disabled in
+	// wrangler.json so a deployment cannot bypass that Access route.
 });

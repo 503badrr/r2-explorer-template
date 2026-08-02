@@ -1,0 +1,24 @@
+name: R2 Explorer Quality Gate
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: ["main"]
+  push:
+    branches: ["main", "release/switch-unified-2026-08-01"]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx wrangler deploy --dry-run --env=""
+      - run: npx wrangler deploy --dry-run --env production
